@@ -1,0 +1,14 @@
+{
+  "name": "internet-speed-measure",
+  "version": "1.0.0",
+  "description": "Console tool to measure download speed via sequential HTTP requests",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "start": "node src/cli.js"
+  },
+  "license": "MIT"
+}
