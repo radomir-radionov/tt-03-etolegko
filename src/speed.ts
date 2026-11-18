@@ -1,17 +1,17 @@
-/**
- * @param {number} totalDurationMs
- * @param {number} count
- */
-export function averageRequestTimeMs(totalDurationMs, count) {
+import type { SpeedReport } from "./types.js";
+
+export function averageRequestTimeMs(
+  totalDurationMs: number,
+  count: number,
+): number {
   return totalDurationMs / count;
 }
 
-/**
- * Megabits per second: (bytes * 8) / seconds / 1e6
- * @param {number} totalBytes
- * @param {number} totalDurationMs
- */
-export function downloadSpeedMbps(totalBytes, totalDurationMs) {
+/** Megabits per second: (bytes * 8) / seconds / 1e6 */
+export function downloadSpeedMbps(
+  totalBytes: number,
+  totalDurationMs: number,
+): number {
   const seconds = totalDurationMs / 1000;
   if (seconds <= 0) {
     return 0;
@@ -19,10 +19,7 @@ export function downloadSpeedMbps(totalBytes, totalDurationMs) {
   return (totalBytes * 8) / seconds / 1e6;
 }
 
-/**
- * @param {number} bytes
- */
-function formatBytesHuman(bytes) {
+function formatBytesHuman(bytes: number): string {
   if (bytes >= 1_000_000) {
     return `${(bytes / 1_000_000).toFixed(2)} MB`;
   }
@@ -32,17 +29,7 @@ function formatBytesHuman(bytes) {
   return `${bytes} B`;
 }
 
-/**
- * @param {{
- *   url: string;
- *   count: number;
- *   totalBytes: number;
- *   totalDurationMs: number;
- *   averageMs: number;
- *   speedMbps: number;
- * }} report
- */
-export function formatReport(report) {
+export function formatReport(report: SpeedReport): string {
   const totalSeconds = report.totalDurationMs / 1000;
 
   return [

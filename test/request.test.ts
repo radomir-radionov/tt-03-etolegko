@@ -1,26 +1,25 @@
 import assert from "node:assert/strict";
 import http from "node:http";
+import type { Server } from "node:http";
 import { after, before, test } from "node:test";
 import { downloadOnce } from "../src/request.js";
 
 const payload = Buffer.alloc(1024, 0xab);
 
-let baseUrl;
-let hangUrl;
-/** @type {import("node:http").Server | undefined} */
-let server;
-/** @type {import("node:http").Server | undefined} */
-let hangServer;
+let baseUrl: string;
+let hangUrl: string;
+let server: Server | undefined;
+let hangServer: Server | undefined;
 
 before(() => {
   return Promise.all([
-    new Promise((resolve) => {
+    new Promise<void>((resolve) => {
       server = http.createServer((_req, res) => {
         res.writeHead(200, { "Content-Type": "application/octet-stream" });
         res.end(payload);
       });
       server.listen(0, "127.0.0.1", () => {
-        const addr = server.address();
+        const addr = server!.address();
         if (!addr || typeof addr === "string") {
           throw new Error("expected server to listen on a TCP port");
         }
@@ -28,13 +27,12 @@ before(() => {
         resolve();
       });
     }),
-    new Promise((resolve) => {
+    new Promise<void>((resolve) => {
       hangServer = http.createServer((_req, res) => {
         res.writeHead(200, { "Content-Type": "application/octet-stream" });
-        // never res.end()
       });
       hangServer.listen(0, "127.0.0.1", () => {
-        const addr = hangServer.address();
+        const addr = hangServer!.address();
         if (!addr || typeof addr === "string") {
           throw new Error("expected server to listen on a TCP port");
         }
@@ -47,21 +45,19 @@ before(() => {
 
 after(() => {
   return Promise.all([
-    new Promise((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       if (!server) {
         resolve();
         return;
       }
       server.close((err) => (err ? reject(err) : resolve()));
     }),
-    new Promise((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       if (!hangServer) {
         resolve();
         return;
       }
-      if (typeof hangServer.closeAllConnections === "function") {
-        hangServer.closeAllConnections();
-      }
+      hangServer.closeAllConnections();
       hangServer.close((err) => (err ? reject(err) : resolve()));
     }),
   ]);

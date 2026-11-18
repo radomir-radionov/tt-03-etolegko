@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { measureSequential } from "../src/measure.js";
+import type { DownloadResult } from "../src/types.js";
 
 test("measureSequential calls downloadOnce count times in order", async () => {
-  const callOrder = [];
+  const callOrder: number[] = [];
   let callIndex = 0;
 
-  const downloadOnce = async (url) => {
+  const downloadOnce = async (_url: string): Promise<DownloadResult> => {
     callOrder.push(callIndex++);
     return { durationMs: 100, bytes: 50 };
   };
@@ -27,7 +28,7 @@ test("measureSequential is strictly sequential", async () => {
   let inFlight = 0;
   let maxInFlight = 0;
 
-  const downloadOnce = async () => {
+  const downloadOnce = async (): Promise<DownloadResult> => {
     inFlight += 1;
     maxInFlight = Math.max(maxInFlight, inFlight);
     await new Promise((r) => setTimeout(r, 1));

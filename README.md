@@ -1,89 +1,54 @@
 # Internet speed measure
 
-Консольный скрипт на Node.js для оценки скорости скачивания: делает **10 последовательных** HTTP-запросов по указанному URL, дожидается полного тела ответа на каждом и выводит статистику.
+Консольный скрипт на **TypeScript** / Node.js для оценки скорости скачивания: **10 последовательных** HTTP-запросов по URL, полное тело ответа на каждом, отчёт в консоль.
 
 ## Требования
 
 - [Node.js](https://nodejs.org/) **20** или новее
-- Внешние npm-зависимости не нужны (только стандартная библиотека)
+- npm
 
 ## Установка
 
 ```bash
-git clone <url-репозитория>
-cd internet-speed-measure
+git clone https://github.com/radomir-radionov/tt-03-etolegko.git
+cd tt-03-etolegko
+npm install
 ```
 
 ## Запуск
 
 ```bash
-npm test          # unit / e2e тесты
+npm test          # сборка + unit / e2e (tsx + node:test)
+npm run build     # tsc → dist/
 npm start -- "https://example.com/path/to/large-file.jpg"
-# или
-node src/cli.js "https://example.com/path/to/large-file.jpg"
+# после сборки напрямую:
+node dist/cli.js "https://example.com/path/to/large-file.jpg"
 ```
 
-Без аргумента или с невалидным URL скрипт завершится с кодом `1` и сообщением в stderr.
+Без аргумента или с невалидным URL — код выхода `1`, сообщение в stderr.
 
-Каждый запрос ограничен таймаутом **120 с** (`DEFAULT_REQUEST_TIMEOUT_MS` в `src/constants.js`); при превышении — ошибка и код выхода `1`.
+Таймаут одного запроса: **120 с** (`DEFAULT_REQUEST_TIMEOUT_MS` в `src/constants.ts`).
 
-## Что считается
+## Единицы
 
-| Метрика | Описание |
-|--------|----------|
-| **Total downloaded** | Сумма байт по всем 10 ответам (в выводе — KB/MB, десятичные кратные 1000) |
-| **Total time** | Сумма длительностей каждого запроса (не wall-clock между первым и последним) |
-| **Average request time** | `total time / 10`, миллисекунды |
-| **Download speed** | **Мбит/с (Mbps)** |
+| Метрика | Единица |
+|--------|---------|
+| Объём | байты (вывод KB/MB, основание 1000) |
+| Среднее время запроса | мс |
+| Скорость | **Mbps** (мегабит/с, 10⁶ бит/с) |
 
-### Формула скорости
-
-```
-Mbps = (totalBytes × 8) / (totalDurationMs / 1000) / 1_000_000
-```
-
-То есть полный объём в битах, делённый на суммарное время загрузок в секундах, в мегабитах (10⁶ бит/с).
-
-## Пример вывода
-
-```text
-URL: https://example.com/large.jpg
-Requests: 10 (sequential)
-Total downloaded: 45.23 MB
-Total time (sum of requests): 12.40 s
-Average request time: 1240.00 ms
-Download speed: 29.17 Mbps
-```
+`Mbps = (totalBytes × 8) / (totalDurationMs / 1000) / 1_000_000`
 
 ## Структура
 
 ```text
-src/
-  cli.js       # точка входа
-  run.js       # оркестрация
-  parse-args.js
-  request.js   # один GET до конца тела
-  constants.js # REQUEST_COUNT, таймаут
-  measure.js   # 10 последовательных запросов
-  speed.js     # расчёты и форматирование
-test/          # node:test
-```
-
-## Публикация на GitHub
-
-```bash
-git init
-git add .
-git commit -m "Add internet speed measure CLI"
-gh repo create tt-03-etolegko --public --source=. --push
-```
-
-Если репозиторий уже создан на GitHub:
-
-```bash
-git remote add origin git@github.com:<user>/<repo>.git
-git branch -M main
-git push -u origin main
+src/           # TypeScript (ESM, NodeNext)
+  cli.ts
+  run.ts
+  types.ts
+  ...
+test/          # *.test.ts, импорты с суффиксом .js (Node ESM)
+dist/          # артефакт tsc (в .gitignore)
 ```
 
 ## Лицензия

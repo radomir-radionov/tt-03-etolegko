@@ -6,8 +6,8 @@ import { test } from "node:test";
 
 const testDir = path.join(path.dirname(fileURLToPath(import.meta.url)));
 
-test("test runner discovers *.test.js files in test/", async () => {
+test("test runner discovers *.test.ts files in test/", async () => {
   const entries = await readdir(testDir);
-  const testFiles = entries.filter((name) => name.endsWith(".test.js"));
-  assert.ok(testFiles.length >= 1, "expected at least one *.test.js file");
+  const testFiles = entries.filter((name) => name.endsWith(".test.ts"));
+  assert.ok(testFiles.length >= 1, "expected at least one *.test.ts file");
 });

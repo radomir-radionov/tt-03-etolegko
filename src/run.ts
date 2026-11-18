@@ -6,26 +6,20 @@ import {
   downloadSpeedMbps,
   formatReport,
 } from "./speed.js";
+import type { RunDeps } from "./types.js";
 
-/**
- * @param {string[]} argv
- * @param {{
- *   measureSequential?: typeof defaultMeasureSequential;
- *   log?: (message: string) => void;
- *   onError?: (err: unknown) => void;
- * }} [deps]
- */
-export async function run(argv, deps = {}) {
+export async function run(
+  argv: readonly string[],
+  deps: RunDeps = {},
+): Promise<void> {
   const measureSequential = deps.measureSequential ?? defaultMeasureSequential;
   const log = deps.log ?? console.log;
 
-  let url;
+  let url: string;
   try {
     ({ url } = parseArgs(argv));
   } catch (err) {
-    if (deps.onError) {
-      deps.onError(err);
-    }
+    deps.onError?.(err);
     throw err;
   }
 

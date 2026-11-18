@@ -2,13 +2,12 @@ import http from "node:http";
 import https from "node:https";
 import { performance } from "node:perf_hooks";
 import { DEFAULT_REQUEST_TIMEOUT_MS } from "./constants.js";
+import type { DownloadResult } from "./types.js";
 
-/**
- * @param {string} url
- * @param {{ timeoutMs?: number }} [options]
- * @returns {Promise<{ durationMs: number; bytes: number }>}
- */
-export function downloadOnce(url, options = {}) {
+export function downloadOnce(
+  url: string,
+  options: { readonly timeoutMs?: number } = {},
+): Promise<DownloadResult> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
 
   return new Promise((resolve, reject) => {
@@ -16,17 +15,16 @@ export function downloadOnce(url, options = {}) {
     const lib = parsed.protocol === "https:" ? https : http;
 
     const start = performance.now();
-    /** @type {NodeJS.Timeout | undefined} */
-    let deadline;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
 
-    const fail = (err) => {
+    const fail = (err: unknown) => {
       if (deadline) {
         clearTimeout(deadline);
       }
       reject(err);
     };
 
-    const finish = (result) => {
+    const finish = (result: DownloadResult) => {
       if (deadline) {
         clearTimeout(deadline);
       }
@@ -43,10 +41,9 @@ export function downloadOnce(url, options = {}) {
           return;
         }
 
-        /** @type {number} */
         let bytes = 0;
 
-        res.on("data", (chunk) => {
+        res.on("data", (chunk: Buffer) => {
           bytes += chunk.length;
         });
 
@@ -68,8 +65,6 @@ export function downloadOnce(url, options = {}) {
       fail(new Error(`Request timed out after ${timeoutMs} ms for ${url}`));
     }, timeoutMs);
 
-    if (typeof deadline.unref === "function") {
-      deadline.unref();
-    }
+    deadline.unref();
   });
 }

@@ -1,31 +1,31 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import type { Server } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, test } from "node:test";
 
 const payload = Buffer.alloc(2048, 1);
 
-let baseUrl;
-/** @type {import("node:http").Server | undefined} */
-let server;
+let baseUrl: string;
+let server: Server | undefined;
 
 const cliPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
-  "src",
+  "dist",
   "cli.js",
 );
 
 before(() => {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     server = http.createServer((_req, res) => {
       res.writeHead(200, { "Content-Type": "application/octet-stream" });
       res.end(payload);
     });
     server.listen(0, "127.0.0.1", () => {
-      const addr = server.address();
+      const addr = server!.address();
       if (!addr || typeof addr === "string") {
         throw new Error("expected server to listen on a TCP port");
       }
@@ -36,7 +36,7 @@ before(() => {
 });
 
 after(() => {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     if (!server) {
       resolve();
       return;
@@ -45,27 +45,29 @@ after(() => {
   });
 });
 
-function runCli(url) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cliPath, url], {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+function runCli(url: string) {
+  return new Promise<{ code: number | null; stdout: string; stderr: string }>(
+    (resolve, reject) => {
+      const child = spawn(process.execPath, [cliPath, url], {
+        stdio: ["ignore", "pipe", "pipe"],
+      });
 
-    let stdout = "";
-    let stderr = "";
+      let stdout = "";
+      let stderr = "";
 
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
-    });
+      child.stdout.on("data", (chunk: Buffer) => {
+        stdout += chunk.toString();
+      });
+      child.stderr.on("data", (chunk: Buffer) => {
+        stderr += chunk.toString();
+      });
 
-    child.on("error", reject);
-    child.on("close", (code) => {
-      resolve({ code, stdout, stderr });
-    });
-  });
+      child.on("error", reject);
+      child.on("close", (code) => {
+        resolve({ code, stdout, stderr });
+      });
+    },
+  );
 }
 
 test("cli performs 10 downloads against local server", async () => {

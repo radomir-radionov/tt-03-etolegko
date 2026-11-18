@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { run } from "../src/run.js";
+import type { MeasureResult } from "../src/types.js";
 
 test("run prints formatted report for url", async () => {
-  const lines = [];
-  const measureSequential = async () => ({
+  const lines: string[] = [];
+  const measureSequential = async (): Promise<MeasureResult> => ({
     results: [],
     totalBytes: 10_000_000,
     totalDurationMs: 8000,
@@ -21,7 +22,7 @@ test("run prints formatted report for url", async () => {
 });
 
 test("run exits via onError when parse fails", async () => {
-  let reported;
+  let reported: unknown;
   await assert.rejects(
     () =>
       run(["node", "cli.js"], {

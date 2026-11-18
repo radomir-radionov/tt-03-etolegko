@@ -10,7 +10,7 @@ test("parseArgs returns url from argv", () => {
 test("parseArgs rejects missing url", () => {
   assert.throws(
     () => parseArgs(["node", "script"]),
-  /URL is required/,
+    /URL is required/,
   );
 });
 
